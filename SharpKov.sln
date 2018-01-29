@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2024
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpKov", "SharpKov\SharpKov.csproj", "{EE73DC6E-1489-4268-825A-5C9DB60B7877}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EE73DC6E-1489-4268-825A-5C9DB60B7877}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE73DC6E-1489-4268-825A-5C9DB60B7877}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE73DC6E-1489-4268-825A-5C9DB60B7877}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE73DC6E-1489-4268-825A-5C9DB60B7877}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2D7508DE-8172-48DB-90C8-8EBDD3C9B89D}
+	EndGlobalSection
+EndGlobal
