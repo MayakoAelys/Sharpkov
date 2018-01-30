@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
 using SharpKov.Utils;
 
@@ -10,6 +12,7 @@ namespace SharpKov
     /// </summary>
     class Program
     {
+        // TODO Logging
         static void Main(string[] args)
         {
             var config = new Config();
@@ -36,7 +39,30 @@ namespace SharpKov
 
                 foreach (var tweet in timeline)
                 {
-                    //markov.AddSentence(tweet);
+                    markov.AddSentence(tweet);
+                }
+
+                // either post a tweet or write X tweets to a file
+                var writeFile = config.GetBoolValue(ConfigKeys.Preferences_Local);
+                var forceLastWord = config.GetBoolValue(ConfigKeys.Preferences_ForceLastWord);
+
+                if (writeFile)
+                {
+                    var generatedTweets = new List<string>();
+
+                    for (var i = 0; i < 1000; i++)
+                    {
+                        generatedTweets.Add(markov.GenerateSentence(220, forceLastWord));
+                    }
+
+                    var filePath = Directory.GetCurrentDirectory() + @"\tweets.txt";
+                    File.AppendAllLines(filePath, generatedTweets);
+
+                    Console.WriteLine($"Generated tweets written at {filePath}.");
+                }
+                else
+                {
+                    twitter.PostTweet(markov.GenerateSentence(250, forceLastWord));
                 }
             }
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Tweetinvi;
 using Tweetinvi.Models;
@@ -27,61 +28,57 @@ namespace SharpKov.Utils
 
         public List<string> GetStatuses()
         {
-            IEnumerable<ITweet> statuses;
-            List<string> result = new List<string>();
+            var result = new List<string>();
             long? sinceId = -1;
-            string text;
-            var passes = 0;
 
             var homeParams = new HomeTimelineParameters()
             {
                 MaximumNumberOfTweetsToRetrieve = 200
             };
-            homeParams.AddCustomQueryParameter("tweet_mode", "extended");
+            homeParams.AddCustomQueryParameter("tweet_mode", "extended"); // Avoid truncated tweets
 
             while (this.GetRemainingRequests() > 0)
             {
                 if (sinceId != -1) homeParams.SinceId = (long) sinceId;
 
-                statuses = Timeline.GetHomeTimeline(homeParams);
+                var statuses = Timeline.GetHomeTimeline(homeParams);
 
                 if (statuses == null) break; // couldn't fetch more
 
                 foreach (var tweet in statuses)
                 {
-                    text = tweet.RetweetedTweet?.FullText ?? tweet.FullText;
+                    var text = tweet.RetweetedTweet?.FullText ?? tweet.FullText;
 
                     text = this.CleanTweet(text);
                     if(this.IsNiceTweet(text)) { result.Add(text); }
 
                     sinceId = tweet.Id;
-                    // TODO check how to set SinceID to null when we can't fetch more tweets
                 }
-
-                passes++;
-
-                //return result;
             }
 
             return result;
-
         }
 
-        public bool IsNiceTweet(string text)
+        public bool IsNiceTweet(string tweet)
         {
-            // TODO
+            if (tweet.StartsWith("http://") || tweet.StartsWith("https://") || tweet.StartsWith("www") || string.IsNullOrWhiteSpace(tweet))
+                return false;
+
             return true;
         }
 
-        public string CleanTweet(string text)
+        public string CleanTweet(string tweet)
         {
-            // TODO
-            return text;
+            while (tweet.StartsWith('@') || tweet.StartsWith(".@"))
+            {
+                tweet = string.Join(" ", tweet.Split().Skip(1));
+            }
+            return tweet.Trim();
         }
 
-        public void PostTweet()
+        public void PostTweet(string tweet)
         {
-            throw new NotImplementedException();
+            Tweet.PublishTweet(tweet);
         }
 
         public void HelloWorld()

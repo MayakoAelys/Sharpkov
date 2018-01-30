@@ -18,7 +18,7 @@ namespace SharpKov.Utils
 
         public Config()
         {
-            // TODO check what happens when the config file doesn't exist
+            // TODO handle the missing config file
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("Config/appSettings.json");
@@ -37,6 +37,12 @@ namespace SharpKov.Utils
         public string GetValue(string key)
         {
             return _configuration[key];
+        }
+
+        public bool GetBoolValue(string key)
+        {
+            bool.TryParse(_configuration[key], out var value);
+            return value;
         }
 
         /// <summary>
