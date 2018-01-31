@@ -62,7 +62,9 @@ namespace SharpKov.Utils
                 
                 // Pref
                 bool.TryParse(_configuration[ConfigKeys.Preferences_Local], out dummy)           &&
-                bool.TryParse(_configuration[ConfigKeys.Preferences_ForceLastWord], out dummy);
+                bool.TryParse(_configuration[ConfigKeys.Preferences_ForceLastWord], out dummy)   &&
+                bool.TryParse(_configuration[ConfigKeys.Preferences_Logging], out dummy)         &&
+                bool.TryParse(_configuration[ConfigKeys.Preferences_TestMode], out dummy);
         }
     }
 }

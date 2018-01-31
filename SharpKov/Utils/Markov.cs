@@ -8,16 +8,21 @@ namespace SharpKov.Utils
 {
     public class Markov
     {
+        private Logging _log;
         private Dictionary<string, List<string>> _wordChains = new Dictionary<string, List<string>>();
         private WordsList _firstWords = new WordsList();
         private WordsList _lastWords = new WordsList();
 
-        public Markov(string startString = "")
+        public Markov(Logging log, string startString = "")
         {
+            this._log = log;
+            _log.WriteIn();
+
             if (!string.IsNullOrWhiteSpace(startString))
             {
                 this.AddSentence(startString);
             }
+
         }
 
         #region Database
@@ -93,6 +98,8 @@ namespace SharpKov.Utils
 
         public string GenerateSentence(int maxChar = 500, bool forceLastWord = false)
         {
+            _log.WriteIn();
+            _log.Write($"Sentence parameters: maxChar = {maxChar}, forceLastWord = {forceLastWord}");
             var result = "";
 
             while (true)

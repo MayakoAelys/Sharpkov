@@ -11,23 +11,30 @@ namespace SharpKov.Utils
 {
     public class Twitter
     {
-        private readonly string _patternUsername = @"(\.?@[a-zA-Z0-9_ ]{1,15})"; // ref.: https://support.twitter.com/articles/20065832#error
-        private ITwitterCredentials _auth;
+        //private readonly string _patternUsername = @"(\.?@[a-zA-Z0-9_ ]{1,15})"; // ref.: https://support.twitter.com/articles/20065832#error
+        //private ITwitterCredentials _auth;
+        private readonly Logging _log;
 
-        public Twitter(Config config)
+        public Twitter(Config config, Logging log)
         {
-            _auth = Auth.SetUserCredentials(config.ConsumerKey, config.ConsumerSecret, config.AccessToken, config.AccessSecret);
-            
+            Auth.SetUserCredentials(config.ConsumerKey, config.ConsumerSecret, config.AccessToken, config.AccessSecret);
+            _log = log;
         }
 
         public int GetRemainingRequests()
         {
+            _log.WriteIn();
             var rateLimit = RateLimit.GetCurrentCredentialsRateLimits();
-            return rateLimit.StatusesHomeTimelineLimit.Limit;
+            var rateLimitCount = rateLimit.StatusesHomeTimelineLimit.Limit;
+
+            _log.Write($"Remaining requests: {rateLimitCount}");
+            return rateLimitCount;
         }
 
         public List<string> GetStatuses()
         {
+            _log.WriteIn();
+
             var result = new List<string>();
             long? sinceId = -1;
 
@@ -41,8 +48,10 @@ namespace SharpKov.Utils
             {
                 if (sinceId != -1) homeParams.SinceId = (long) sinceId;
 
+                _log.Write($"GetHomeTimeLine with sinceId: {sinceId}");
                 var statuses = Timeline.GetHomeTimeline(homeParams);
 
+                _log.Write($"Did we get something? {statuses != null}");
                 if (statuses == null) break; // couldn't fetch more
 
                 foreach (var tweet in statuses)
@@ -69,6 +78,7 @@ namespace SharpKov.Utils
 
         public string CleanTweet(string tweet)
         {
+            //_log.Write("[Twitter] CleanTweet", this);
             while (tweet.StartsWith('@') || tweet.StartsWith(".@"))
             {
                 tweet = string.Join(" ", tweet.Split().Skip(1));
@@ -78,11 +88,14 @@ namespace SharpKov.Utils
 
         public void PostTweet(string tweet)
         {
+            _log.WriteIn();
+            _log.Write($"Trying to post: {tweet}");
             Tweet.PublishTweet(tweet);
         }
 
         public void HelloWorld()
         {
+            _log.WriteIn();
             Tweet.PublishTweet("Hello world ♥");
         }
     }
