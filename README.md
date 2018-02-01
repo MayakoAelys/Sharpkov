@@ -1,5 +1,5 @@
 # Sharpkov
-*This project is a C# port of the now abandoned [SharpKov project](https://github.com/MayakoLyyn?tab=repositories).*
+*This project is a C# port of the now abandoned [PyrKov project](https://github.com/MayakoLyyn/Pyrkov).*
 
 Generate new tweets based on old ones using a custom Markov Chains implementation. It's written in C#, using **ASP.Net Core 2**, it means that this project is cross-platform! You can run it on Linux, Mac and obviously Windows.
 
