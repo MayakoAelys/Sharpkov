@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Tweetinvi;
 using Tweetinvi.Models;
@@ -10,83 +11,95 @@ namespace SharpKov.Utils
 {
     public class Twitter
     {
-        private readonly string _patternUsername = @"(\.?@[a-zA-Z0-9_ ]{1,15})"; // ref.: https://support.twitter.com/articles/20065832#error
-        private ITwitterCredentials _auth;
+        //private readonly string _patternUsername = @"(\.?@[a-zA-Z0-9_ ]{1,15})"; // ref.: https://support.twitter.com/articles/20065832#error
+        //private ITwitterCredentials _auth;
+        private readonly Logging _log;
+        private readonly IAuthenticatedUser _user;
 
-        public Twitter(Config config)
+        public Twitter(Config config, Logging log)
         {
-            _auth = Auth.SetUserCredentials(config.ConsumerKey, config.ConsumerSecret, config.AccessToken, config.AccessSecret);
-            
+            _user = User.GetAuthenticatedUser(Auth.CreateCredentials(config.ConsumerKey, config.ConsumerSecret, config.AccessToken, config.AccessSecret));
+            _log = log;
         }
 
         public int GetRemainingRequests()
         {
-            var rateLimit = RateLimit.GetCurrentCredentialsRateLimits();
-            return rateLimit.StatusesHomeTimelineLimit.Limit;
+            _log.WriteIn();
+            
+            var rateLimit = RateLimit.GetCredentialsRateLimits(_user.Credentials);
+            var rateLimitCount = rateLimit.StatusesHomeTimelineLimit.Remaining;
+
+            _log.Write($"Remaining requests: {rateLimitCount}");
+            return rateLimitCount;
         }
 
         public List<string> GetStatuses()
         {
-            IEnumerable<ITweet> statuses;
-            List<string> result = new List<string>();
+            _log.WriteIn();
+
+            var result = new List<string>();
             long? sinceId = -1;
-            string text;
-            var passes = 0;
 
             var homeParams = new HomeTimelineParameters()
             {
                 MaximumNumberOfTweetsToRetrieve = 200
             };
-            homeParams.AddCustomQueryParameter("tweet_mode", "extended");
+            homeParams.AddCustomQueryParameter("tweet_mode", "extended"); // Avoid truncated tweets
 
             while (this.GetRemainingRequests() > 0)
             {
                 if (sinceId != -1) homeParams.SinceId = (long) sinceId;
 
-                statuses = Timeline.GetHomeTimeline(homeParams);
+                _log.Write($"GetHomeTimeLine with sinceId: {sinceId}");
 
+                var statuses = _user.GetHomeTimeline(homeParams);
+
+                _log.Write($"Did we get something? {statuses != null}");
                 if (statuses == null) break; // couldn't fetch more
 
                 foreach (var tweet in statuses)
                 {
-                    text = tweet.RetweetedTweet?.FullText ?? tweet.FullText;
+                    var text = tweet.RetweetedTweet?.FullText ?? tweet.FullText;
 
                     text = this.CleanTweet(text);
                     if(this.IsNiceTweet(text)) { result.Add(text); }
 
                     sinceId = tweet.Id;
-                    // TODO check how to set SinceID to null when we can't fetch more tweets
                 }
-
-                passes++;
-
-                //return result;
             }
 
             return result;
-
         }
 
-        public bool IsNiceTweet(string text)
+        public bool IsNiceTweet(string tweet)
         {
-            // TODO
+            if (tweet.StartsWith("http://") || tweet.StartsWith("https://") || tweet.StartsWith("www") || string.IsNullOrWhiteSpace(tweet))
+                return false;
+
             return true;
         }
 
-        public string CleanTweet(string text)
+        public string CleanTweet(string tweet)
         {
-            // TODO
-            return text;
+            //_log.Write("[Twitter] CleanTweet", this);
+            while (tweet.StartsWith('@') || tweet.StartsWith(".@"))
+            {
+                tweet = string.Join(" ", tweet.Split().Skip(1));
+            }
+            return tweet.Trim();
         }
 
-        public void PostTweet()
+        public void PostTweet(string tweet)
         {
-            throw new NotImplementedException();
+            _log.WriteIn();
+            _log.Write($"Trying to post a tweet...");
+            _user.PublishTweet(tweet);
         }
 
         public void HelloWorld()
         {
-            Tweet.PublishTweet("Hello world ♥");
+            _log.WriteIn();
+            _user.PublishTweet("Hello world ♥");
         }
     }
 }
