@@ -14,18 +14,20 @@ namespace SharpKov.Utils
         //private readonly string _patternUsername = @"(\.?@[a-zA-Z0-9_ ]{1,15})"; // ref.: https://support.twitter.com/articles/20065832#error
         //private ITwitterCredentials _auth;
         private readonly Logging _log;
+        private readonly IAuthenticatedUser _user;
 
         public Twitter(Config config, Logging log)
         {
-            Auth.SetUserCredentials(config.ConsumerKey, config.ConsumerSecret, config.AccessToken, config.AccessSecret);
+            _user = User.GetAuthenticatedUser(Auth.CreateCredentials(config.ConsumerKey, config.ConsumerSecret, config.AccessToken, config.AccessSecret));
             _log = log;
         }
 
         public int GetRemainingRequests()
         {
             _log.WriteIn();
-            var rateLimit = RateLimit.GetCurrentCredentialsRateLimits();
-            var rateLimitCount = rateLimit.StatusesHomeTimelineLimit.Limit;
+            
+            var rateLimit = RateLimit.GetCredentialsRateLimits(_user.Credentials);
+            var rateLimitCount = rateLimit.StatusesHomeTimelineLimit.Remaining;
 
             _log.Write($"Remaining requests: {rateLimitCount}");
             return rateLimitCount;
@@ -49,7 +51,8 @@ namespace SharpKov.Utils
                 if (sinceId != -1) homeParams.SinceId = (long) sinceId;
 
                 _log.Write($"GetHomeTimeLine with sinceId: {sinceId}");
-                var statuses = Timeline.GetHomeTimeline(homeParams);
+
+                var statuses = _user.GetHomeTimeline(homeParams);
 
                 _log.Write($"Did we get something? {statuses != null}");
                 if (statuses == null) break; // couldn't fetch more
@@ -89,14 +92,14 @@ namespace SharpKov.Utils
         public void PostTweet(string tweet)
         {
             _log.WriteIn();
-            _log.Write($"Trying to post: {tweet}");
-            Tweet.PublishTweet(tweet);
+            _log.Write($"Trying to post a tweet...");
+            _user.PublishTweet(tweet);
         }
 
         public void HelloWorld()
         {
             _log.WriteIn();
-            Tweet.PublishTweet("Hello world ♥");
+            _user.PublishTweet("Hello world ♥");
         }
     }
 }

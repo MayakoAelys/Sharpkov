@@ -9,6 +9,7 @@ namespace SharpKov
 {
     /// <summary>
     /// C# fork of Pyrkov
+    /// build: dotnet publish -c Release (-r debian-x64)
     /// </summary>
     class Program
     {
@@ -28,6 +29,8 @@ namespace SharpKov
 
             if (_config.GetBoolValue(ConfigKeys.Preferences_TestMode)) TestMode();
             else TwitterMode();
+
+            _log.Write("Exiting...");
         }
 
         private static void TestMode()

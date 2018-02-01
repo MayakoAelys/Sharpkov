@@ -68,7 +68,7 @@ namespace SharpKov.Utils
 
         private void AddChainedWords(string key, string value)
         {
-            key = StringHelper.NormalizeString(key);
+            key = key.Trim();
             value = value.Trim();
 
             if (this._wordChains.ContainsKey(key))
@@ -149,7 +149,7 @@ namespace SharpKov.Utils
 
             public bool Contains(string word)
             {
-                word = StringHelper.NormalizeString(word);
+                word = word.Trim();
 
                 foreach (var _word in _wordsList)
                 {
@@ -161,7 +161,7 @@ namespace SharpKov.Utils
 
             public void Add(string word)
             {
-                this._wordsList.Add(StringHelper.NormalizeString(word));
+                this._wordsList.Add(word.Trim());
             }
 
             public string GetRandomValue()
