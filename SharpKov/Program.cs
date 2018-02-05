@@ -20,6 +20,7 @@ namespace SharpKov
         {
             _config = new Config();
             _log = new Logging(_config.GetBoolValue(ConfigKeys.Preferences_Logging));
+            _log.Write("Launching SharpKov...");
 
             if (!_config.IsValid())
             {
