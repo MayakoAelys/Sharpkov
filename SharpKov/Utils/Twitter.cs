@@ -25,11 +25,20 @@ namespace SharpKov.Utils
         public int GetRemainingRequests()
         {
             _log.WriteIn();
-            
-            var rateLimit = RateLimit.GetCredentialsRateLimits(_user.Credentials);
-            var rateLimitCount = rateLimit.StatusesHomeTimelineLimit.Remaining;
+            int rateLimitCount = 1;
 
-            _log.Write($"Remaining requests: {rateLimitCount}");
+            // WORKAROUND FOR LINUX (NullReferenceException on RateLimit.GetCredentialsRateLimits, WHY THE FUCK IS IT HAPPENING)
+            try
+            {
+                var rateLimit = RateLimit.GetCredentialsRateLimits(_user.Credentials);
+                rateLimitCount = rateLimit.StatusesHomeTimelineLimit.Remaining;
+                _log.Write($"Remaining requests: {rateLimitCount}");
+            }
+            catch (Exception e)
+            {
+                _log.Write(e);
+            }
+
             return rateLimitCount;
         }
 
