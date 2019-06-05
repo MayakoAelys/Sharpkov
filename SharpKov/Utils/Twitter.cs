@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Web;
 using Tweetinvi;
 using Tweetinvi.Models;
 using Tweetinvi.Parameters;
@@ -14,11 +13,17 @@ namespace SharpKov.Utils
         //private readonly string _patternUsername = @"(\.?@[a-zA-Z0-9_ ]{1,15})"; // ref.: https://support.twitter.com/articles/20065832#error
         //private ITwitterCredentials _auth;
         private readonly Logging _log;
+
         private readonly IAuthenticatedUser _user;
 
         public Twitter(Config config, Logging log)
         {
-            _user = User.GetAuthenticatedUser(Auth.CreateCredentials(config.ConsumerKey, config.ConsumerSecret, config.AccessToken, config.AccessSecret));
+            var cred = Auth.CreateCredentials(config.ConsumerKey, config.ConsumerSecret, config.AccessToken, config.AccessSecret);
+
+            if (cred == null)
+                throw new Exception("Couldn't create credentials. Please check if your Auth settings are completed and valid.");
+
+            _user = User.GetAuthenticatedUser(cred);
             _log = log;
         }
 
@@ -53,11 +58,11 @@ namespace SharpKov.Utils
             {
                 MaximumNumberOfTweetsToRetrieve = 200
             };
-            homeParams.AddCustomQueryParameter("tweet_mode", "extended"); // Avoid truncated tweets
+            // homeParams.AddCustomQueryParameter("tweet_mode", "extended"); // Avoid truncated tweets - Useless now
 
             while (this.GetRemainingRequests() > 0)
             {
-                if (sinceId != -1) homeParams.SinceId = (long) sinceId;
+                if (sinceId != -1) homeParams.SinceId = (long)sinceId;
 
                 _log.Write($"GetHomeTimeLine with sinceId: {sinceId}");
 
@@ -71,7 +76,8 @@ namespace SharpKov.Utils
                     var text = tweet.RetweetedTweet?.FullText ?? tweet.FullText;
 
                     text = this.CleanTweet(text);
-                    if(this.IsNiceTweet(text)) { result.Add(text); }
+
+                    if (this.IsNiceTweet(text)) { result.Add(text); }
 
                     sinceId = tweet.Id;
                 }
@@ -95,6 +101,9 @@ namespace SharpKov.Utils
             {
                 tweet = string.Join(" ", tweet.Split().Skip(1));
             }
+
+            tweet = HttpUtility.HtmlDecode(tweet);
+
             return tweet.Trim();
         }
 
